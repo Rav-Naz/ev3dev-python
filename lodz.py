@@ -2,17 +2,15 @@
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent
 from ev3dev2.sensor import INPUT_1,INPUT_2,INPUT_3,INPUT_4
 from ev3dev2.sensor.lego import TouchSensor, LightSensor,UltrasonicSensor
-from ev3dev2.button import Button
 import os
 from time import sleep
-from random import randint
+from random import randint, choice
 
 os.system('setfont Lat15-TerminusBold14')
 tsL = TouchSensor(INPUT_4) #Przycisk na wysięgniku lewym
 tsP = TouchSensor(INPUT_3) #Przycisk na wysięgniku prawym
 
 ultra = UltrasonicSensor(INPUT_1)
-button = Button()
 
 mLT = LargeMotor(OUTPUT_A) #Silnik lewy tylny
 mLP = LargeMotor(OUTPUT_B) #Silnik lewy przedni
@@ -44,50 +42,70 @@ def motorRunForever(POWER):
     mRT.run_forever(speed_sp=-POWER)
     mRP.run_forever(speed_sp=(-POWER/1.667))
 
-while True:
+idleSpeed = 800
+attackSpeed = 1050
 
-    if button.down:
-        sleep(5)
-        Rotate(-1050, .200)
-        Rotate(1050, 1.200)
-        break
+baseDegrees = .950
 
-    elif button.enter:
-        sleep(5)
-        Rotate(1050, .200)
-        Rotate(-1050, .500)
-        break
-
-motorRunForever(1050)
-
-while True:
+def outOfBounds():
     if light.reflected_light_intensity > 60:
         rand = randint(0,1)
         if rand == 0:
-            Rotate(-1050, 1)
+            Rotate(idleSpeed, 1)
         elif rand == 1:
-            Rotate(-1050, 1)
-        motorRunForever(1050)
+            Rotate(-idleSpeed, 1)
+        motorRunForever(idleSpeed)
+        return True
+    return False
+
+while True:
+
+    if tsP.is_pressed:
+        rand = choice((-1,1))
+        sleep(5)
+        Rotate(-attackSpeed, .200)
+        Rotate(attackSpeed, baseDegrees+rand*.100)
+        break
 
     elif tsL.is_pressed:
-        Rotate(-1050, .5)
-        motorRunForever(1050)
+        rand = choice((-1,1))
+        sleep(5)
+        Rotate(attackSpeed, .200)
+        Rotate(-attackSpeed, baseDegrees+rand*.100)
+        break
+
+motorRunForever(attackSpeed)
+
+skan = True
+
+while True:
+    if outOfBounds():
+        continue
+
+    elif tsL.is_pressed:
+        skan = True
+        Rotate(-attackSpeed, .5)
+        motorRunForever(attackSpeed)
 
     elif tsP.is_pressed:
-        Rotate(1050, .5)
-        motorRunForever(1050)
+        skan = True
+        Rotate(attackSpeed, .5)
+        motorRunForever(attackSpeed)
 
-    try:
-        if ultra.distance_centimeters_ping <= 5:
-            break
-        elif ultra.distance_centimeters_ping <= 10:
-            motorRunForever(1050)
-        elif ultra.distance_centimeters_ping <= 30:
-            rand = randint(0,1)
-            if rand == 0:
-                Rotate(-1050,.4)
-            elif rand == 1:
-                Rotate(-1050,.4)
-            motorRunForever(1050)
-    except:
-        pass
+    wart = ultra.distance_centimeters
+
+    if outOfBounds():
+        continue
+
+    elif wart <= 20:
+        motorRunForever(attackSpeed)
+        skan = True
+
+    elif wart <= 55  and wart >= 30 and skan:
+        rand = randint(0,1)
+        if rand == 0:
+            Rotate(-idleSpeed,.3)
+        elif rand == 1:
+            Rotate(idleSpeed,.3)
+        motorRunForever(idleSpeed)
+        skan = False
