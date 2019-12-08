@@ -2,9 +2,11 @@
 from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, OUTPUT_C, OUTPUT_D, SpeedPercent
 from ev3dev2.sensor import INPUT_1,INPUT_2,INPUT_3,INPUT_4
 from ev3dev2.sensor.lego import TouchSensor, LightSensor,UltrasonicSensor
+from ev3dev2.button import Button
 import os
 from time import sleep
 from random import randint, choice
+from ev3dev2.led import Leds
 
 os.system('setfont Lat15-TerminusBold14')
 tsL = TouchSensor(INPUT_4) #Przycisk na wysięgniku lewym
@@ -18,6 +20,10 @@ mRT = LargeMotor(OUTPUT_C) #Silnik prawy tylny
 mRP = LargeMotor(OUTPUT_D) #Silnik prawy przedni
 
 light = LightSensor(INPUT_2) #Czujnik koloru
+
+leds = Leds()
+
+button = Button()
 
 def Rotate(POWER, TIME=.250):
     mLT.run_forever(speed_sp=-POWER)
@@ -42,7 +48,7 @@ def motorRunForever(POWER):
     mRT.run_forever(speed_sp=-POWER)
     mRP.run_forever(speed_sp=(-POWER/1.667))
 
-idleSpeed = 800
+idleSpeed = 650
 attackSpeed = 1050
 
 baseDegrees = .950
@@ -50,15 +56,20 @@ baseDegrees = .950
 def outOfBounds():
     if light.reflected_light_intensity > 60:
         rand = randint(0,1)
+        motorRunForever(-attackSpeed)
+        sleep(.4)
         if rand == 0:
-            Rotate(idleSpeed, 1)
+            Rotate(attackSpeed, .5)
         elif rand == 1:
-            Rotate(-idleSpeed, 1)
+            Rotate(-attackSpeed, .5)
         motorRunForever(idleSpeed)
         return True
     return False
 
 while True:
+
+    leds.set_color("LEFT", "RED")
+    leds.set_color("RIGHT", "RED")
 
     if tsP.is_pressed:
         rand = choice((-1,1))
@@ -79,6 +90,9 @@ motorRunForever(attackSpeed)
 skan = True
 
 while True:
+    if button.enter:
+        break
+    wart = ultra.distance_centimeters
     if outOfBounds():
         continue
 
@@ -92,10 +106,9 @@ while True:
         Rotate(attackSpeed, .5)
         motorRunForever(attackSpeed)
 
-    wart = ultra.distance_centimeters
 
-    if outOfBounds():
-        continue
+   # if outOfBounds():
+    #    continue
 
     elif wart <= 20:
         motorRunForever(attackSpeed)
@@ -104,8 +117,8 @@ while True:
     elif wart <= 55  and wart >= 30 and skan:
         rand = randint(0,1)
         if rand == 0:
-            Rotate(-idleSpeed,.3)
+            Rotate(-attackSpeed,.15)
         elif rand == 1:
-            Rotate(idleSpeed,.3)
+            Rotate(attackSpeed,.15)
         motorRunForever(idleSpeed)
         skan = False
