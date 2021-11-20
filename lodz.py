@@ -9,15 +9,17 @@ from random import randint, choice
 from ev3dev2.led import Leds
 
 os.system('setfont Lat15-TerminusBold14')
-tsL = TouchSensor(INPUT_4) #Przycisk na wysięgniku lewym
-tsP = TouchSensor(INPUT_3) #Przycisk na wysięgniku prawym
 
 ultra = UltrasonicSensor(INPUT_1)
 
-mLT = LargeMotor(OUTPUT_A) #Silnik lewy tylny
-mLP = LargeMotor(OUTPUT_B) #Silnik lewy przedni
-mRT = LargeMotor(OUTPUT_C) #Silnik prawy tylny
-mRP = LargeMotor(OUTPUT_D) #Silnik prawy przedni
+# mLT = LargeMotor(OUTPUT_A) #Silnik lewy tylny
+# mLP = LargeMotor(OUTPUT_B) #Silnik lewy przedni
+# mRT = LargeMotor(OUTPUT_C) #Silnik prawy tylny
+# mRP = LargeMotor(OUTPUT_D) #Silnik prawy przedni
+
+ramie = LargeMotor(OUTPUT_A);
+napedLewy = LargeMotor(OUTPUT_C);
+napedPrawy = LargeMotor(OUTPUT_D);
 
 light = LightSensor(INPUT_2) #Czujnik koloru
 
